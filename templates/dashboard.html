@@ -102,7 +102,7 @@ Authorization: Bearer YOUR_API_KEY</pre>
             if (!response.ok) throw new Error('Failed to fetch models');
             const data = await response.json();
             
-            modelSelect.innerHTML = ''; // Clear loading text
+            modelSelect.innerHTML = '';
             if (data.models && data.models.length > 0) {
                 data.models.forEach(model => {
                     const option = document.createElement('option');
@@ -120,7 +120,6 @@ Authorization: Bearer YOUR_API_KEY</pre>
     }
 
     createKeyBtn.addEventListener('click', async () => {
-        // UI loading state
         createKeyBtn.disabled = true;
         loadingSpinner.classList.remove('hidden');
         btnText.textContent = 'Đang tạo...';
@@ -142,7 +141,6 @@ Authorization: Bearer YOUR_API_KEY</pre>
             errorArea.textContent = 'Lỗi: ' + e.message;
             errorArea.classList.remove('hidden');
         } finally {
-            // Restore UI
             createKeyBtn.disabled = false;
             loadingSpinner.classList.add('hidden');
             btnText.textContent = 'Tạo Key';
