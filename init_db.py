@@ -1,15 +1,15 @@
 import os
 import psycopg2
-from dotenv import load_dotenv
-
-# Tải các biến môi trường từ file .env (nếu có, dùng cho local dev)
-load_dotenv()
 
 def init_db():
     """Khởi tạo bảng trong database PostgreSQL."""
-    db_url = os.environ.get('POSTGRES_URL')
+    
+    # Gán trực tiếp URL kết nối, không dùng biến môi trường
+    # CẢNH BÁO: Không nên làm cách này trong môi trường production!
+    db_url = "postgres://neondb_owner:npg_9vVoOENbyM7R@ep-summer-shape-a1w0h1ig-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+    
     if not db_url:
-        print("Lỗi: Biến môi trường POSTGRES_URL chưa được thiết lập.")
+        print("Lỗi: URL kết nối database chưa được thiết lập.")
         return
         
     conn = None
@@ -42,3 +42,4 @@ def init_db():
 
 if __name__ == "__main__":
     init_db()
+
