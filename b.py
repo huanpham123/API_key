@@ -4,7 +4,6 @@ import hashlib
 import psycopg2
 from datetime import datetime
 from functools import wraps
-from urllib.parse import urlparse
 
 from flask import (
     Flask, request, jsonify, render_template, redirect, url_for, session
@@ -16,15 +15,13 @@ import g4f
 
 # --- Cấu hình ---
 app = Flask(__name__)
-# Lấy Secret Key từ biến môi trường, hoặc tạo một key ngẫu nhiên
 app.secret_key = os.environ.get('FLASK_SECRET', secrets.token_hex(16))
 
-# Lấy URL của Vercel Postgres từ biến môi trường
+# Lấy URL kết nối database từ biến môi trường
 DATABASE_URL = os.environ.get('POSTGRES_URL')
 
-# Lấy mật khẩu site từ biến môi trường, hoặc dùng 'adminpass' làm mặc định
-# Hash mật khẩu nếu chưa có hash
-SITE_PASSWORD = os.environ.get('SITE_PASSWORD', 'adminpass')
+# Thiết lập mật khẩu admin
+SITE_PASSWORD = os.environ.get('SITE_PASSWORD', 'admin123@@')
 SITE_PASSWORD_HASH = os.environ.get('SITE_PASSWORD_HASH')
 if not SITE_PASSWORD_HASH:
     SITE_PASSWORD_HASH = generate_password_hash(SITE_PASSWORD)
@@ -47,43 +44,54 @@ def get_db_connection():
 
 def init_db():
     """Hàm khởi tạo bảng trong DB, chạy một lần duy nhất."""
-    conn = get_db_connection()
-    if conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS api_keys (
-                    id SERIAL PRIMARY KEY,
-                    key_hash TEXT NOT NULL UNIQUE,
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    print("Đang khởi tạo database...")
+    try:
+        conn = get_db_connection()
+        if conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS api_keys (
+                        id SERIAL PRIMARY KEY,
+                        key_hash TEXT NOT NULL UNIQUE,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                    """
                 )
-                """
-            )
-        conn.commit()
-        conn.close()
-        print("Khởi tạo database thành công.")
+            conn.commit()
+            conn.close()
+            print("✅ Khởi tạo database thành công.")
+    except Exception as e:
+        print(f"❌ Lỗi khi khởi tạo database: {e}")
 
 def store_key_hash(key_hash: str):
     """Lưu hash của API key vào database."""
     conn = get_db_connection()
     if conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO api_keys (key_hash) VALUES (%s)",
-                (key_hash,),
-            )
-        conn.commit()
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO api_keys (key_hash) VALUES (%s)",
+                    (key_hash,),
+                )
+            conn.commit()
+        except psycopg2.IntegrityError:
+            # Key đã tồn tại, bỏ qua
+            pass
+        finally:
+            conn.close()
 
 def key_exists_hash(key_hash: str) -> bool:
     """Kiểm tra xem hash của key đã tồn tại trong DB chưa."""
     conn = get_db_connection()
     found = False
     if conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT EXISTS(SELECT 1 FROM api_keys WHERE key_hash = %s)", (key_hash,))
-            found = cur.fetchone()[0]
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT EXISTS(SELECT 1 FROM api_keys WHERE key_hash = %s)", (key_hash,))
+                found = cur.fetchone()[0]
+        finally:
+            conn.close()
     return found
 
 # --- Helpers ---
@@ -142,12 +150,13 @@ def get_available_models():
         "llama3-70b-8192", "llama3-8b-8192"
     }
     models.update(fallback_models)
+    
+    # Cố gắng lấy danh sách model động từ thư viện
     try:
-        # Cố gắng lấy danh sách model động từ thư viện
         g4f_models = g4f.models._all_models
         models.update(g4f_models)
     except Exception as e:
-        print(f"Không thể lấy danh sách model động từ g4f: {e}")
+        print(f"⚠️ Không thể lấy danh sách model động từ g4f: {e}")
     
     # Lọc bỏ những thứ không phải chuỗi và sắp xếp
     return sorted([m for m in models if isinstance(m, str)])
@@ -209,7 +218,7 @@ def api_chat():
                 "finish_reason": "stop"
             }],
             "usage": {
-                "prompt_tokens": 0, # g4f không cung cấp thông tin này
+                "prompt_tokens": 0,
                 "completion_tokens": 0,
                 "total_tokens": 0
             }
@@ -217,3 +226,9 @@ def api_chat():
         return jsonify(chat_response)
     except Exception as e:
         return jsonify({'error': f'Lỗi từ g4f: {str(e)}'}), 500
+
+# Khởi tạo database khi ứng dụng bắt đầu
+init_db()
+
+if __name__ == '__main__':
+    app.run(debug=True)
