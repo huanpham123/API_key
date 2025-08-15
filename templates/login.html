@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}Đăng nhập - G4F API Gateway{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-2xl shadow-xl fade-in">
+        <div class="text-center">
+            <svg class="mx-auto h-12 w-auto text-blue-600 dark:text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+            </svg>
+            <h2 class="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Đăng nhập vào Gateway
+            </h2>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Cung cấp quyền truy cập vào các mô hình AI.
+            </p>
+        </div>
+        
+        {% if error %}
+        <div class="p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-700 dark:text-red-400" role="alert">
+            <span class="font-medium">Lỗi!</span> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mật khẩu trang</label>
+                <div class="mt-1">
+                    <input id="password" name="password" type="password" required
+                           class="w-full px-3 py-2 text-gray-900 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="••••••••••••">
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-300">
+                    Đăng nhập
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - G4F API Gateway{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
+    <header class="flex justify-between items-center mb-8">
+        <div class="flex items-center space-x-3">
+            <svg class="h-8 w-8 text-blue-600 dark:text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+            </svg>
+            <h1 class="text-3xl font-bold tracking-tight">API Key Dashboard</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+             <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg id="theme-toggle-dark-icon" class="hidden h-5 w-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="hidden h-5 w-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 5.05A1 1 0 003.636 3.636l-.707.707a1 1 0 101.414 1.414l.707-.707zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+            </button>
+            <a href="/logout" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Đăng xuất</a>
+        </div>
+    </header>
+    
+    <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="space-y-6 fade-in">
+            <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Tạo API Key mới</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Tạo một API key mới để sử dụng với các dịch vụ. API key sẽ chỉ hiển thị một lần duy nhất, hãy sao chép và lưu trữ nó ở nơi an toàn.</p>
+                <button id="createKeyBtn" class="w-full flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-300 disabled:bg-blue-400 disabled:cursor-not-allowed">
+                    <svg id="loading-spinner" class="hidden animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span id="btn-text">Tạo Key</span>
+                </button>
+            </div>
+
+            <div id="createdKeyArea" class="hidden p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                 <h3 class="text-lg font-semibold mb-3">API Key của bạn</h3>
+                 <p class="text-sm text-red-600 dark:text-red-400 font-semibold mb-3">⚠️ Lưu lại ngay! Bạn sẽ không thể xem lại key này.</p>
+                 <div class="relative">
+                    <pre id="apiKeyText" class="w-full p-3 text-sm font-mono bg-gray-100 dark:bg-gray-900/50 rounded-md overflow-x-auto"></pre>
+                    <button id="copyBtn" class="absolute top-2 right-2 p-1.5 text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </button>
+                 </div>
+                 <div id="copy-feedback" class="text-xs text-green-600 dark:text-green-400 mt-2"></div>
+            </div>
+            <div id="errorArea" class="hidden p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-700 dark:text-red-400"></div>
+        </div>
+
+        <div class="space-y-6 fade-in" style="animation-delay: 0.1s;">
+            <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Hướng dẫn sử dụng API</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Sử dụng API key đã tạo để gọi tới endpoint <code>/api/chat</code>. Endpoint này tương thích với định dạng của OpenAI API.</p>
+                
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">Endpoint:</p>
+                    <pre class="w-full p-3 text-sm font-mono bg-gray-100 dark:bg-gray-900/50 rounded-md">POST /api/chat</pre>
+                </div>
+                
+                <div class="mt-4 space-y-2">
+                    <p class="text-sm font-medium">Headers:</p>
+                    <pre class="w-full p-3 text-sm font-mono bg-gray-100 dark:bg-gray-900/50 rounded-md">Content-Type: application/json
+Authorization: Bearer YOUR_API_KEY</pre>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <p class="text-sm font-medium">Body (JSON):</p>
+                    <pre class="w-full p-3 text-sm font-mono bg-gray-100 dark:bg-gray-900/50 rounded-md overflow-x-auto">
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Xin chào, bạn là ai?"
+    }
+  ]
+}</pre>
+                </div>
+                 <div class="mt-6">
+                    <p class="text-sm font-medium mb-2">Danh sách Model có sẵn:</p>
+                    <select id="modelSelect" class="w-full px-3 py-2 text-gray-900 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option>Đang tải models...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const createKeyBtn = document.getElementById('createKeyBtn');
+    const createdKeyArea = document.getElementById('createdKeyArea');
+    const apiKeyText = document.getElementById('apiKeyText');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyFeedback = document.getElementById('copy-feedback');
+    const errorArea = document.getElementById('errorArea');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const btnText = document.getElementById('btn-text');
+    const modelSelect = document.getElementById('modelSelect');
+
+    async function loadModels() {
+        try {
+            const response = await fetch('/api/models');
+            if (!response.ok) throw new Error('Failed to fetch models');
+            const data = await response.json();
+            
+            modelSelect.innerHTML = ''; // Clear loading text
+            if (data.models && data.models.length > 0) {
+                data.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            } else {
+                 modelSelect.innerHTML = '<option value="">Không tìm thấy model nào</option>';
+            }
+        } catch (error) {
+            console.error('Error loading models:', error);
+            modelSelect.innerHTML = '<option value="">Lỗi tải model</option>';
+        }
+    }
+
+    createKeyBtn.addEventListener('click', async () => {
+        // UI loading state
+        createKeyBtn.disabled = true;
+        loadingSpinner.classList.remove('hidden');
+        btnText.textContent = 'Đang tạo...';
+        createdKeyArea.classList.add('hidden');
+        errorArea.classList.add('hidden');
+        
+        try {
+            const response = await fetch('/api/create_key', { method: 'POST' });
+            const data = await response.json();
+
+            if (response.ok && data.api_key) {
+                apiKeyText.textContent = data.api_key;
+                createdKeyArea.classList.remove('hidden');
+                copyFeedback.textContent = '';
+            } else {
+                throw new Error(data.error || 'Lỗi không xác định');
+            }
+        } catch (e) {
+            errorArea.textContent = 'Lỗi: ' + e.message;
+            errorArea.classList.remove('hidden');
+        } finally {
+            // Restore UI
+            createKeyBtn.disabled = false;
+            loadingSpinner.classList.add('hidden');
+            btnText.textContent = 'Tạo Key';
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(apiKeyText.textContent).then(() => {
+            copyFeedback.textContent = 'Đã sao chép vào clipboard!';
+            setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
+        }).catch(err => {
+            copyFeedback.textContent = 'Không thể sao chép!';
+        });
+    });
+
+    // Dark mode toggle display
+    const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+    
+    function updateThemeIcons() {
+        if (document.documentElement.classList.contains('dark')) {
+            themeToggleLightIcon.classList.remove('hidden');
+            themeToggleDarkIcon.classList.add('hidden');
+        } else {
+            themeToggleLightIcon.classList.add('hidden');
+            themeToggleDarkIcon.classList.remove('hidden');
+        }
+    }
+    document.getElementById('theme-toggle').addEventListener('click', updateThemeIcons);
+
+    // Initial load
+    updateThemeIcons();
+    loadModels();
+</script>
+{% endblock %}
